@@ -24,8 +24,10 @@ from okcat.trans import Trans
 
 __author__ = 'JacksGong'
 
-TIME_WIDTH = 12
-THREAD_WIDTH = 12
+DATE_WIDTH = 5
+TIME_WIDTH = 16
+PROCESS_WIDTH = 5
+THREAD_WIDTH = 5
 TAG_WIDTH = 23
 
 width = -1
@@ -58,6 +60,7 @@ class LogProcessor:
     regex_parser = None
     highlight_list = None
     # target_time = None
+    log_type = None
 
     # tmp
     last_msg_key = None
@@ -78,11 +81,24 @@ class LogProcessor:
         self.highlight_list = highlight_list
 
     def setup_condition(self, tag_keywords, line_keywords=None):
-        self.tag_keywords = tag_keywords
-        self.line_keywords = line_keywords
+        if self.tag_keywords is None:
+            self.tag_keywords = tag_keywords
+        else:
+            self.tag_keywords += tag_keywords
+
+        if self.line_keywords is None:
+            self.line_keywords = line_keywords
+        else:
+            self.line_keywords += line_keywords
+
+    def get_tag_keywords(self):
+        return self.tag_keywords
 
     def setup_regex_parser(self, regex_exp):
         self.regex_parser = LogRegex(regex_exp)
+
+    def setup_log_type(self, log_type):
+        self.log_type = log_type
 
     def process(self, origin_line):
         origin_line = origin_line.decode('utf-8', 'replace').rstrip()
@@ -94,13 +110,14 @@ class LogProcessor:
             return None, None, False
 
         date, time, level, tag, process, thread, message = self.regex_parser.parse(origin_line)
+
         if message is None:
             message = origin_line
 
-        return self.process_decode_content(origin_line, time, level, tag, process, thread, message)
+        return self.process_decode_content(origin_line, date, time, level, tag, process, thread, message)
 
     # noinspection PyUnusedLocal
-    def process_decode_content(self, line, time, level, tag, process, thread, message):
+    def process_decode_content(self, line, date, time, level, tag, process, thread, message):
 
         match_condition = True
 
@@ -112,7 +129,14 @@ class LogProcessor:
             else:
                 self.pre_line_match = True
 
-
+        #filter
+        if self.log_type == 'notime':
+            if self.tag_keywords is not None and message is not None:
+                if not keywords_regex(message, self.tag_keywords):
+                    match_condition = False
+                    self.pre_line_match = False
+                else:
+                    self.pre_line_match = True
 
         if self.line_keywords is not None:
             if not keywords_regex(line, self.line_keywords):
@@ -134,6 +158,15 @@ class LogProcessor:
         # the handled current line
         linebuf = ''
 
+        # date
+        if date is not None:
+            date = date[-DATE_WIDTH:].rjust(DATE_WIDTH)
+            linebuf += date
+            linebuf += ' '
+        elif self.regex_parser.is_contain_date():
+            linebuf += ' ' * DATE_WIDTH
+            linebuf += ' '
+
         # time
         if time is not None:
             time = time[-TIME_WIDTH:].rjust(TIME_WIDTH)
@@ -141,6 +174,16 @@ class LogProcessor:
             linebuf += ' '
         elif self.regex_parser.is_contain_time():
             linebuf += ' ' * TIME_WIDTH
+            linebuf += ' '
+
+        # process
+        if process is not None:
+            process = process.strip()
+            process = process[-PROCESS_WIDTH:].rjust(PROCESS_WIDTH)
+            linebuf += process
+            linebuf += ' '
+        elif self.regex_parser.is_contain_process():
+            linebuf += ' ' * PROCESS_WIDTH
             linebuf += ' '
 
         # thread
@@ -153,19 +196,6 @@ class LogProcessor:
             linebuf += ' ' * THREAD_WIDTH
             linebuf += ' '
 
-        # tag
-        if tag is not None and (not self.hide_same_tags or tag != self.last_tag):
-            self.last_tag = tag
-            tag = tag.strip()
-            color = allocate_color(tag)
-            tag = tag.strip()
-            tag = tag[-TAG_WIDTH:].rjust(TAG_WIDTH)
-            linebuf += colorize(tag, fg=color)
-            linebuf += ' '
-        elif self.regex_parser.is_contain_tag():
-            linebuf += ' ' * TAG_WIDTH
-            linebuf += ' '
-
         # level
         if level is not None:
             if level in TAGTYPES:
@@ -175,6 +205,19 @@ class LogProcessor:
             linebuf += ' '
         elif self.regex_parser.is_contain_level():
             linebuf += ' '
+            linebuf += ' '
+
+        # tag
+        if tag is not None and (not self.hide_same_tags or tag != self.last_tag):
+            self.last_tag = tag
+            #tag = tag.strip()
+            color = allocate_color(tag)
+            #tag = tag.strip()
+            #tag = tag[-TAG_WIDTH:].rjust(TAG_WIDTH)
+            linebuf += colorize(tag, fg=color)
+            #linebuf += ' '
+        elif self.regex_parser.is_contain_tag():
+            linebuf += ' ' * TAG_WIDTH
             linebuf += ' '
 
         # message

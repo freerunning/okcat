@@ -29,14 +29,14 @@ __description__ = 'This python script used for combine several Android projects 
 
 
 def main():
-    print("-------------------------------------------------------")
-    print("                  OkCat v" + __version__)
-    print("")
-    print("Thanks for using okcat! Now, the doc is available on: ")
-    print_blue("        https://github.com/Jacksgong/okcat")
-    print("")
-    print("                   Have Fun!")
-    print("-------------------------------------------------------")
+    #print("-------------------------------------------------------")
+    #print("                  OkCat v" + __version__)
+    #print("")
+    #print("Thanks for using okcat! Now, the doc is available on: ")
+    #print_blue("        https://github.com/Jacksgong/okcat")
+    #print("")
+    #print("                   Have Fun!")
+    #print("-------------------------------------------------------")
 
     parser = argparse.ArgumentParser(description='Filter logcat by package name')
     parser.add_argument('package_or_path', nargs='*',
@@ -46,7 +46,7 @@ def main():
                         help='Do not display the same tag name')
 
     # following args are just for parser
-    # parser.add_argument('-k', '--keyword', dest='keyword', action='append', help='You can filter you care about log by this keyword(s)')
+    parser.add_argument('-k', '--keyword', dest='keyword', action='append', help='You can filter you care about log by this keyword(s)')
 
     # following args are just for adb
     parser.add_argument('-w', '--tag-width', metavar='N', dest='tag_width', type=int, default=23,
@@ -92,8 +92,9 @@ def main():
             print("-------------------------------------------------------")
             exit()
 
+        print("start analyse log")
         parser = LogFileParser(file_paths, args.hide_same_tags)
-        parser.setup(args.yml)
+        parser.setup(args.yml, args)
         parser.process()
     else:
         is_interrupt_by_user = False

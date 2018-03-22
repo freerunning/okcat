@@ -33,16 +33,18 @@ class LogFileParser:
     logStreams = []
     cacheLines = []
     lineTimes = []
+    logType = None
 
     def __init__(self, file_paths, hide_same_tags):
         self.filePaths = file_paths
         self.hideSameTags = hide_same_tags
 
-    def setup(self, yml_file_name):
+    def setup(self, yml_file_name, args):
         for path in self.filePaths:
             if not exists(path):
                 exit("log path: %s is not exist!" % path)
         self.processor = LogProcessor(self.hideSameTags)
+        self.processor.setup_condition(tag_keywords=args.tag_keywords)
 
         loader = ConfLoader()
         loader.load(get_conf_path(yml_file_name))
@@ -54,6 +56,11 @@ class LogFileParser:
         self.processor.setup_highlight(highlight_list=loader.get_highlight_list())
         self.processor.setup_condition(tag_keywords=loader.get_tag_keyword_list())
         self.processor.setup_regex_parser(regex_exp=loader.get_log_line_regex())
+        self.logType = loader.get_log_type()
+        self.processor.setup_log_type(self.logType)
+        print("logtype:%s" % self.logType)
+        print("tag:%s" % self.processor.get_tag_keywords())
+        print("."*100)
 
     def color_line(self, line):
         msg_key, line_buf, match_precondition = self.processor.process(line)
@@ -70,17 +77,23 @@ class LogFileParser:
     def popup_cache_line(self, popup_index):
         need_read_stream = self.logStreams[popup_index]
         new_line = need_read_stream.readline()
-        if new_line:
-            match_result = re.search(TIME_REGEX, new_line)
-            if match_result:
-                self.lineTimes.insert(popup_index, match_result.group())
-                self.cacheLines.insert(popup_index, new_line)
-            else:
+
+        if self.logType == 'notime':
+            while new_line:
                 self.color_line(new_line)
-                self.popup_cache_line(popup_index)
+                new_line = need_read_stream.readline()
         else:
-            need_read_stream.close()
-            self.logStreams.pop(popup_index)
+            if new_line:
+                match_result = re.search(TIME_REGEX, new_line)
+                if match_result:
+                    self.lineTimes.insert(popup_index, match_result.group())
+                    self.cacheLines.insert(popup_index, new_line)
+                else:
+                    self.color_line(new_line)
+                    self.popup_cache_line(popup_index)
+            else:
+                need_read_stream.close()
+                self.logStreams.pop(popup_index)
 
 
 

@@ -102,12 +102,12 @@ def colorize(message, fg=None, bg=None):
 
 
 TAGTYPES = {
-    'V': colorize(' V ', fg=WHITE, bg=BLACK),
-    'D': colorize(' D ', fg=BLACK, bg=BLUE),
-    'I': colorize(' I ', fg=BLACK, bg=GREEN),
-    'W': colorize(' W ', fg=BLACK, bg=YELLOW),
-    'E': colorize(' E ', fg=BLACK, bg=RED),
-    'F': colorize(' F ', fg=BLACK, bg=RED),
+    'V': colorize('V ', fg=WHITE, bg=BLACK),
+    'D': colorize('D ', fg=BLACK, bg=BLUE),
+    'I': colorize('I ', fg=BLACK, bg=GREEN),
+    'W': colorize('W ', fg=BLACK, bg=YELLOW),
+    'E': colorize('E ', fg=BLACK, bg=RED),
+    'F': colorize('F ', fg=BLACK, bg=RED),
 }
 
 # for random color

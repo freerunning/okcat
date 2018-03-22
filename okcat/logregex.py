@@ -22,9 +22,9 @@ from okcat.terminalcolor import print_warn
 
 __author__ = 'jacks.gong'
 
-# val = 'data,time,process,thread,level,tag,message = "(.\S*) (.\S*) (\d*) (\d*) ([V|I|D|W|E]) ([^:]*): (.*)"'
+# val = 'date,time,process,thread,level,tag,message = "(.\S*) (.\S*) (\d*) (\d*) ([V|I|D|W|E]) ([^:]*): (.*)"'
 REGEX_EXP_RE = re.compile(r"([^ =]*) *= *[\"|'](.*)[\"|']")
-ALL_SUPPORT_KEY = ["data", "time", "process", "thread", "level", "tag", "message"]
+ALL_SUPPORT_KEY = ["date", "time", "process", "thread", "level", "tag", "message"]
 
 
 class LogRegex:
@@ -47,7 +47,7 @@ class LogRegex:
         print("find regex: " + self.key_order.__str__() + " with " + regex)
 
     def parse(self, line):
-        data = None
+        date = None
         time = None
         process = None
         thread = None
@@ -58,15 +58,15 @@ class LogRegex:
         values = self.regex.match(line)
 
         if values is None:
-            return data, time, level, tag, process, thread, message
+            return date, time, level, tag, process, thread, message
 
         # print values.groups().__str__()
         i = 0
         for value in values.groups():
             key = self.key_order[i]
             i += 1
-            if key == "data":
-                data = value
+            if key == "date":
+                date = value
             elif key == "time":
                 time = value
             elif key == "process":
@@ -80,23 +80,29 @@ class LogRegex:
             elif key == "message":
                 message = value
 
-        return data, time, level, tag, process, thread, message
+        return date, time, level, tag, process, thread, message
 
-    contain_data = None
+    contain_date = None
     contain_time = None
+    contain_process = None
     contain_thread = None
     contain_tag = None
     contain_level = None
 
-    def is_contain_data(self):
-        if self.contain_data is None:
-            self.contain_data = self.is_contain_key("data")
-        return self.contain_data
+    def is_contain_date(self):
+        if self.contain_date is None:
+            self.contain_date = self.is_contain_key("date")
+        return self.contain_date
 
     def is_contain_time(self):
         if self.contain_time is None:
             self.contain_time = self.is_contain_key("time")
         return self.contain_time
+
+    def is_contain_process(self):
+        if self.contain_process is None:
+            self.contain_process = self.is_contain_key("thread")
+        return self.contain_process
 
     def is_contain_thread(self):
         if self.contain_thread is None:

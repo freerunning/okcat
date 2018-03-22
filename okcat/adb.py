@@ -46,7 +46,7 @@ PID_KILL = re.compile(r'^Killing (\d+):([a-zA-Z0-9._:]+)/[^:]+: (.*)$')
 PID_LEAVE = re.compile(r'^No longer want ([a-zA-Z0-9._:]+) \(pid (\d+)\): .*$')
 PID_DEATH = re.compile(r'^Process ([a-zA-Z0-9._:]+) \(pid (\d+)\) has died.?$')
 
-ADB_LOG_REGEX_EXP = 'data,time,process,thread,level,tag,message="(.\S*) *(.\S*) *(\d*) *(\d*) *([A-Z]) *([^:]*): *(.*?)$"'
+ADB_LOG_REGEX_EXP = 'date,time,process,thread,level,tag,message="(.\S*) *(.\S*) *(\d*) *(\d*) *([A-Z]) *([^:]*) *(.*?)$"'
 
 BUG_LINE = re.compile(r'.*nativeGetEnabledTags.*')
 BACKTRACE_LINE = re.compile(r'^#(.*?)pc\s(.*?)$')
@@ -214,21 +214,16 @@ class Adb:
 
                     app_pid = line_pid
 
-                    linebuf = '\n'
-                    linebuf += colorize(' ' * (self.header_size - 1), bg=WHITE)
-                    linebuf += indent_wrap(' Process %s created for %s\n' % (line_package, target))
-                    linebuf += colorize(' ' * (self.header_size - 1), bg=WHITE)
-                    linebuf += ' PID: %s   UID: %s   GIDs: %s' % (line_pid, line_uid, line_gids)
-                    linebuf += '\n'
+                    linebuf = colorize(' ' * (self.header_size - 1), bg=WHITE)
+                    linebuf += indent_wrap(' Process %s created for %s PID: %s UID: %s GIDs: %s' %
+                        (line_package, target, line_pid, line_uid, line_gids))
                     print(linebuf)
 
             dead_pid, dead_pname = self.parse_death(tag, message)
             if dead_pid:
                 self.pids.remove(dead_pid)
-                linebuf = '\n'
-                linebuf += colorize(' ' * (self.header_size - 1), bg=RED)
-                linebuf += ' Process %s (PID: %s) ended' % (dead_pname, dead_pid)
-                linebuf += '\n'
+                linebuf = colorize(' ' * (self.header_size - 1), bg=RED)
+                linebuf += ' Process %s (PID: %s) died' % (dead_pname, dead_pid)
                 print(linebuf)
 
             # Make sure the backtrace is printed after a native crash
@@ -248,7 +243,7 @@ class Adb:
             if self.tag and not tag_in_tags_regex(tag, self.tag):
                 continue
 
-            msg_key, linebuf, match_precondition = self.processor.process_decode_content(line, time, level, tag, owner,
+            msg_key, linebuf, match_precondition = self.processor.process_decode_content(line, date, time, level, tag, owner,
                                                                                          thread,
                                                                                          message)
             if not match_precondition or linebuf is None:

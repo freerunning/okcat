@@ -67,6 +67,9 @@ class ConfLoader:
     def get_separator_regex_list(self):
         return self.get_value('separator-regex-list')
 
+    def get_log_type(self):
+        return self.get_value('log-type')
+
     def get_value(self, keyword):
         if keyword not in self.yml_conf:
             return None
