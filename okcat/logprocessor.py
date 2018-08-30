@@ -55,6 +55,7 @@ class LogProcessor:
     hide_same_tags = None
     trans = None
     tag_keywords = None
+    grep_keywords = None
     line_keywords = None
     separator = None
     regex_parser = None
@@ -78,9 +79,12 @@ class LogProcessor:
             self.separator = LogSeparator(separator_rex_list)
 
     def setup_highlight(self, highlight_list):
-        self.highlight_list = highlight_list
+        if self.highlight_list is None:
+            self.highlight_list = highlight_list
+        else:
+            self.highlight_list += highlight_list
 
-    def setup_condition(self, tag_keywords, line_keywords=None):
+    def setup_condition(self, tag_keywords, line_keywords=None, grep_keywords=None):
         if self.tag_keywords is None:
             self.tag_keywords = tag_keywords
         else:
@@ -91,8 +95,16 @@ class LogProcessor:
         else:
             self.line_keywords += line_keywords
 
+        if self.grep_keywords is None:
+            self.grep_keywords = grep_keywords
+        else:
+            self.grep_keywords += grep_keywords
+
     def get_tag_keywords(self):
         return self.tag_keywords
+
+    def get_grep_words(self):
+        return self.grep_keywords
 
     def setup_regex_parser(self, regex_exp):
         self.regex_parser = LogRegex(regex_exp)
@@ -126,7 +138,7 @@ class LogProcessor:
             if not keywords_regex(tag, self.tag_keywords):
                 match_condition = False
                 self.pre_line_match = False
-            else:
+            else:   
                 self.pre_line_match = True
 
         #filter
@@ -143,6 +155,15 @@ class LogProcessor:
                 match_condition = False
                 self.pre_line_match = False
             else:
+                self.pre_line_match = True
+
+        if self.grep_keywords is not None:
+            if not keywords_regex(line, self.grep_keywords):
+                match_condition = False
+                self.pre_line_match = False
+                #print "not pre_line_match %s " % line
+            else:
+                match_condition = True
                 self.pre_line_match = True
 
         if match_condition and tag is None and not self.pre_line_match:
@@ -231,11 +252,14 @@ class LogProcessor:
             message = self.trans.hide_msg(message)
             message = self.trans.trans_tag(tag, message)
 
-        if self.highlight_list is not None:
-            for highlight in self.highlight_list:
-                if highlight in message:
-                    message = message.replace(highlight,
-                                              termcolor(fg=BLACK, bg=allocate_color(highlight)) + highlight + RESET)
+        if self.grep_keywords is not None:
+            for keyword in self.grep_keywords:
+                message = message.replace(keyword, termcolor(fg=BLACK, bg=allocate_color(keyword)) + keyword + RESET)
+        else:
+            if self.highlight_list is not None:
+                for highlight in self.highlight_list:
+                    if highlight in message:
+                        message = message.replace(highlight, termcolor(fg=BLACK, bg=allocate_color(highlight)) + highlight + RESET)
 
         linebuf += message
 

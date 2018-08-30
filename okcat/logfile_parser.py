@@ -44,7 +44,7 @@ class LogFileParser:
             if not exists(path):
                 exit("log path: %s is not exist!" % path)
         self.processor = LogProcessor(self.hideSameTags)
-        self.processor.setup_condition(tag_keywords=args.tag_keywords)
+        self.processor.setup_condition(tag_keywords=args.tag_keywords, grep_keywords=args.grep_keywords)
 
         loader = ConfLoader()
         loader.load(get_conf_path(yml_file_name))
@@ -54,7 +54,7 @@ class LogFileParser:
                                    hide_msg_list=loader.get_hide_msg_list())
         self.processor.setup_separator(separator_rex_list=loader.get_separator_regex_list())
         self.processor.setup_highlight(highlight_list=loader.get_highlight_list())
-        self.processor.setup_condition(tag_keywords=loader.get_tag_keyword_list())
+        self.processor.setup_condition(tag_keywords=loader.get_tag_keyword_list(), grep_keywords=loader.get_grep_keyword_list())
         self.processor.setup_regex_parser(regex_exp=loader.get_log_line_regex())
         self.logType = loader.get_log_type()
         self.processor.setup_log_type(self.logType)
@@ -77,7 +77,6 @@ class LogFileParser:
     def popup_cache_line(self, popup_index):
         need_read_stream = self.logStreams[popup_index]
         new_line = need_read_stream.readline()
-
         if self.logType == 'notime':
             while new_line:
                 self.color_line(new_line)
