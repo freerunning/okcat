@@ -94,11 +94,14 @@ def main():
         is_interrupt_by_user = False
 
         _adb = Adb()
-        _adb.setup(args)
-        try:
-            _adb.loop()
-        except KeyboardInterrupt:
-            is_interrupt_by_user = True
+        while True:
+            try:
+                _adb.setup(args)
+                _adb.loop()
+            except KeyboardInterrupt:
+                is_interrupt_by_user = True
 
-        if not is_interrupt_by_user:
-            print_warn('ADB CONNECTION IS LOST.')
+            if is_interrupt_by_user:
+                break
+            else:
+                print_warn('ADB CONNECTION IS LOST. Retry...')
