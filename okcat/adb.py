@@ -85,7 +85,7 @@ class Adb:
         self.tag = args.tag
 
         self.package_name = args.package_or_path
-        self.processor.setup_condition(tag_keywords=args.tag_keywords, grep_keywords=args.grep_keywords)
+        self.processor.setup_condition(tag_keywords=args.tag_keywords, line_keywords=args.line_keywords)
         self.processor.setup_highlight(highlight_list=args.highlight_list)
         if args.yml is not None:
             conf_file_path = get_conf_path(args.yml)
@@ -103,7 +103,7 @@ class Adb:
             if yml_adb_log_regex is not None:
                 self.log_regex = LogRegex(yml_adb_log_regex)
 
-            self.processor.setup_condition(tag_keywords=conf_loader.get_tag_keyword_list(), grep_keywords=conf_loader.get_grep_keyword_list())
+            self.processor.setup_condition(tag_keywords=conf_loader.get_tag_keyword_list(), line_keywords=conf_loader.get_line_keyword_list())
             self.processor.setup_trans(trans_msg_map=conf_loader.get_trans_msg_map(),
                                        trans_tag_map=conf_loader.get_trans_tag_map(),
                                        hide_msg_list=conf_loader.get_hide_msg_list())
@@ -112,6 +112,11 @@ class Adb:
 
         if self.log_regex is None:
             self.log_regex = LogRegex(ADB_LOG_REGEX_EXP)
+
+        print("tag keywords:%s" % self.processor.get_tag_keywords())
+        print("line keywords:%s" % self.processor.get_line_words())
+        print("highlight:%s" % self.processor.get_highlight())
+        print("."*100)
 
         base_adb_command = ['adb']
         if args.device_serial:

@@ -44,7 +44,7 @@ class LogFileParser:
             if not exists(path):
                 exit("log path: %s is not exist!" % path)
         self.processor = LogProcessor(self.hideSameTags)
-        self.processor.setup_condition(tag_keywords=args.tag_keywords, grep_keywords=args.grep_keywords)
+        self.processor.setup_condition(tag_keywords=args.tag_keywords, line_keywords=args.line_keywords)
 
         loader = ConfLoader()
         loader.load(get_conf_path(yml_file_name))
@@ -54,12 +54,14 @@ class LogFileParser:
                                    hide_msg_list=loader.get_hide_msg_list())
         self.processor.setup_separator(separator_rex_list=loader.get_separator_regex_list())
         self.processor.setup_highlight(highlight_list=loader.get_highlight_list())
-        self.processor.setup_condition(tag_keywords=loader.get_tag_keyword_list(), grep_keywords=loader.get_grep_keyword_list())
+        self.processor.setup_condition(tag_keywords=loader.get_tag_keyword_list(), line_keywords=loader.get_line_keyword_list())
         self.processor.setup_regex_parser(regex_exp=loader.get_log_line_regex())
         self.logType = loader.get_log_type()
         self.processor.setup_log_type(self.logType)
         print("logtype:%s" % self.logType)
-        print("tag:%s" % self.processor.get_tag_keywords())
+        print("tag keywords:%s" % self.processor.get_tag_keywords())
+        print("line keywords:%s" % self.processor.get_line_words())
+        print("highlight:%s" % self.processor.get_highlight())
         print("."*100)
 
     def color_line(self, line):

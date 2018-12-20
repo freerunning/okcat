@@ -39,7 +39,7 @@ def main():
     #print("-------------------------------------------------------")
 
     parser = argparse.ArgumentParser(description='Filter logcat by package name')
-    parser.add_argument('package_or_path', nargs='*',
+    parser.add_argument('-f', '--file', dest='package_or_path', nargs='*',
                         help='This can be Application package name(s) or log file path(if the file from path is exist)')
     parser.add_argument('-y', '--yml_file_name', dest='yml', help='Using yml file you config on ~/.okcat folder')
     parser.add_argument('--hide-same-tags', dest='hide_same_tags', action='store_true',
@@ -58,11 +58,11 @@ def main():
     parser.add_argument('-d', '--device', dest='use_device', action='store_true', help='Use first device for log input (adb -d option)')
     parser.add_argument('-e', '--emulator', dest='use_emulator', action='store_true', help='Use first emulator for log input (adb -e option)')
     parser.add_argument('-c', '--clear', dest='clear_logcat', action='store_true', help='Clear the entire log before running')
-    parser.add_argument('-t', '--tag', dest='tag', action='append', help='Filter output by specified tag(s)')
-    parser.add_argument('-tk', '--tag_keywords', dest='tag_keywords', action='append', help='Filter output by specified tag keyword(s)')
-    parser.add_argument('-grp', '--grep_keywords', dest='grep_keywords', action='append', help='Filter output by specified grep_keyword(s)')
-    parser.add_argument('-hl', '--highlight-list', dest='highlight_list', action='append', help='Highlight messages')
-    parser.add_argument('-i', '--ignore-tag', dest='ignored_tag', action='append', help='Filter output by ignoring specified tag(s)')
+    parser.add_argument('-t', '--tag', dest='tag', nargs='+', help='Filter output by specified tag(s)')
+    parser.add_argument('-tk', '--tag_keywords', dest='tag_keywords', nargs='+', help='Filter output by specified tag keyword(s)')
+    parser.add_argument('-lk', '--line_keywords', dest='line_keywords', nargs='+', help='Filter output by specified line_keyword(s)')
+    parser.add_argument('-hl', '--highlight-list', dest='highlight_list', nargs='+', help='Highlight messages')
+    parser.add_argument('-i', '--ignore-tag', dest='ignored_tag', nargs='+', help='Filter output by ignoring specified tag(s)')
     parser.add_argument('-a', '--all', dest='all', action='store_true', default=False, help='Print all log messages')
 
     # help
@@ -70,7 +70,8 @@ def main():
         exit()
 
     args = parser.parse_args()
-
+    if args.package_or_path is None:
+        args.package_or_path = []
     file_paths = []
     candidate_path = args.package_or_path
     for path in candidate_path:
