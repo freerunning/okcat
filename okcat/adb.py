@@ -83,6 +83,7 @@ class Adb:
         self.all = args.all
         self.ignored_tag = args.ignored_tag
         self.tag = args.tag
+        self.parse_start_proc = args.parse_start_proc
 
         self.package_name = args.package_or_path
         self.processor.setup_condition(tag_keywords=args.tag_keywords, line_keywords=args.line_keywords)
@@ -212,7 +213,7 @@ class Adb:
                 continue
 
             tag = tag.strip()
-            start = parse_start_proc(line)
+            start = self.parse_start_proc and parse_start_proc(line)
             if start:
                 line_package, target, line_pid, line_uid, line_gids = start
                 if self.match_packages(line_package):

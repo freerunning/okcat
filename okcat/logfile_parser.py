@@ -46,17 +46,22 @@ class LogFileParser:
         self.processor = LogProcessor(self.hideSameTags)
         self.processor.setup_condition(tag_keywords=args.tag_keywords, line_keywords=args.line_keywords)
 
-        loader = ConfLoader()
-        loader.load(get_conf_path(yml_file_name))
+        if yml_file_name is not None:
+            loader = ConfLoader()
+            loader.load(get_conf_path(yml_file_name))
 
-        self.processor.setup_trans(trans_msg_map=loader.get_trans_msg_map(),
+            self.processor.setup_trans(trans_msg_map=loader.get_trans_msg_map(),
                                    trans_tag_map=loader.get_trans_tag_map(),
                                    hide_msg_list=loader.get_hide_msg_list())
-        self.processor.setup_separator(separator_rex_list=loader.get_separator_regex_list())
-        self.processor.setup_highlight(highlight_list=loader.get_highlight_list())
-        self.processor.setup_condition(tag_keywords=loader.get_tag_keyword_list(), line_keywords=loader.get_line_keyword_list())
-        self.processor.setup_regex_parser(regex_exp=loader.get_log_line_regex())
-        self.logType = loader.get_log_type()
+            self.processor.setup_separator(separator_rex_list=loader.get_separator_regex_list())
+            self.processor.setup_highlight(highlight_list=loader.get_highlight_list())
+            self.processor.setup_condition(tag_keywords=loader.get_tag_keyword_list(), line_keywords=loader.get_line_keyword_list())
+            self.processor.setup_regex_parser(regex_exp=loader.get_log_line_regex())
+            self.logType = loader.get_log_type()
+        else:
+            self.logType = 'android'
+            self.processor.setup_regex_parser(regex_exp='date,time,process,thread,level,tag,message = "(.\S*) *(.\S*) *(\d*) *(\d*) *([A-Z]) *([^:]*) *(.*?)$"')
+            
         self.processor.setup_log_type(self.logType)
         print("logtype:%s" % self.logType)
         print("tag keywords:%s" % self.processor.get_tag_keywords())
@@ -71,7 +76,6 @@ class LogFileParser:
             return
 
         if msg_key is not None:
-            print('')
             print(u''.join(colorize(msg_key + ": ", fg=allocate_color(msg_key))).encode('utf-8').lstrip())
 
         print(u''.join(line_buf).encode('utf-8').lstrip())
@@ -84,6 +88,7 @@ class LogFileParser:
                 self.color_line(new_line)
                 new_line = need_read_stream.readline()
         else:
+
             if new_line:
                 match_result = re.search(TIME_REGEX, new_line)
                 if match_result:
@@ -108,6 +113,7 @@ class LogFileParser:
 
         while self.cacheLines:
             min_index = self.lineTimes.index(min(self.lineTimes))
+            
             self.lineTimes.pop(min_index)
             selected_line = self.cacheLines.pop(min_index)
             self.color_line(selected_line)

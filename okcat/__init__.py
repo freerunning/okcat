@@ -58,11 +58,12 @@ def main():
     parser.add_argument('-d', '--device', dest='use_device', action='store_true', help='Use first device for log input (adb -d option)')
     parser.add_argument('-e', '--emulator', dest='use_emulator', action='store_true', help='Use first emulator for log input (adb -e option)')
     parser.add_argument('-c', '--clear', dest='clear_logcat', action='store_true', help='Clear the entire log before running')
-    parser.add_argument('-t', '--tag', dest='tag', nargs='+', help='Filter output by specified tag(s)')
-    parser.add_argument('-tk', '--tag_keywords', dest='tag_keywords', nargs='+', help='Filter output by specified tag keyword(s)')
-    parser.add_argument('-lk', '--line_keywords', dest='line_keywords', nargs='+', help='Filter output by specified line_keyword(s)')
-    parser.add_argument('-hl', '--highlight-list', dest='highlight_list', nargs='+', help='Highlight messages')
-    parser.add_argument('-i', '--ignore-tag', dest='ignored_tag', nargs='+', help='Filter output by ignoring specified tag(s)')
+    parser.add_argument('-t', '--tag', dest='tag', action='append', help='Filter output by specified tag(s)')
+    parser.add_argument('-tk', '--tag_keywords', dest='tag_keywords', nargs='*', help='Filter output by specified tag keyword(s)')
+    parser.add_argument('-lk', '--line_keywords', dest='line_keywords', nargs='*', help='Filter output by specified line_keyword(s)')
+    parser.add_argument('-hl', '--highlight-list', dest='highlight_list', nargs='*',help='Highlight messages')
+    parser.add_argument('-i', '--ignore-tag', dest='ignored_tag', action='append', help='Filter output by ignoring specified tag(s)')
+    parser.add_argument('-p', '--parse-start-proc', dest='parse_start_proc', action='store_true', default=False, help='Parse_start_proc')
     parser.add_argument('-a', '--all', dest='all', action='store_true', default=False, help='Print all log messages')
 
     # help
@@ -79,13 +80,13 @@ def main():
             file_paths.append(path)
     print(file_paths)
     if file_paths:
-        if args.yml is None:
-            print("")
-            print_exit("Please using '-y=conf-name' to provide config file to parse this log file.")
-            print("The config file is very very simple! More detail about config file please move to : https://github.com/Jacksgong/okcat")
-            print("")
-            print("-------------------------------------------------------")
-            exit()
+        # # if args.yml is None:
+        #     print("")
+        #     print_exit("Please using '-y=conf-name' to provide config file to parse this log file.")
+        #     print("The config file is very very simple! More detail about config file please move to : https://github.com/Jacksgong/okcat")
+        #     print("")
+        #     print("-------------------------------------------------------")
+        #     exit()
 
         print("start analyse log")
         parser = LogFileParser(file_paths, args.hide_same_tags)
@@ -100,6 +101,7 @@ def main():
                 _adb.setup(args)
                 _adb.loop()
             except KeyboardInterrupt:
+                print_warn('interrupt by user')
                 is_interrupt_by_user = True
 
             if is_interrupt_by_user:

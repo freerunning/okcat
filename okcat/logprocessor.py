@@ -124,7 +124,6 @@ class LogProcessor:
 
         if message is None:
             message = origin_line
-
         return self.process_decode_content(origin_line, date, time, level, tag, process, thread, message)
 
     # noinspection PyUnusedLocal
